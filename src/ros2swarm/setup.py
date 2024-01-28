@@ -109,6 +109,7 @@ setup(
 
             # movement_pattern.basic
             'drive_pattern = ros2swarm.movement_pattern.basic.drive_pattern:main',
+            'drive2OriginPattern = ros2swarm.movement_pattern.basic.drive2OriginPattern:main',
             'dispersion_pattern = '
             'ros2swarm.movement_pattern.basic.dispersion_pattern:main',
             'aggregation_pattern = '

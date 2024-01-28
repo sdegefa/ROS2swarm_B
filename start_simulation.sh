@@ -12,13 +12,13 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-colcon build --symlink-install --allow-overriding communication_interfaces launch_gazebo ros2swarm&&
-source ./install/setup.bash &&
+colcon build --symlink-install &&
+source ./install/setup.zsh &&
  ROS_DOMAIN_ID=42 ros2 launch launch_gazebo create_enviroment.launch.py \
- gazebo_world:=arena_large.world \
- pattern:=drive_pattern \
- number_robots:=4 \
- total_robots:=4 \
+ gazebo_world:=empty.world \
+ pattern:=drive2OriginPattern \
+ number_robots:=1 \
+ total_robots:=1 \
  log_level:=info \
  robot:=burger \
  sensor_type:=lidar \
@@ -27,7 +27,7 @@ source ./install/setup.bash &&
  y_start:=0.0 \
  y_dist:=1.0 \
  driving_swarm:=False \
- logging:=True 
+ logging:=False 
 
  
 # to add heterogeneous swarm / robots  

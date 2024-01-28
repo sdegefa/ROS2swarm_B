@@ -76,6 +76,15 @@
 | drive_angular         | float       | angular velocity of robot                                             |
 
 
+##### Drive2Origin (*drive2OriginPattern.yaml*)
+
+| Parameter             | Value       | Description                                                           |
+| :----------           | :---------- | :----------                                                           |
+| drive_timer_period    | float       | time in seconds between publishing current Twist() message to cmd_vel |
+| drive_linear          | float       | linear velocity of robot                                              |
+| drive_angular         | float       | angular velocity of robot                                             |
+
+
 ##### Minimalist Flocking (*minimalist_flocking_pattern.yaml*)
 
 | Parameter                                     | Value                        | Description                                                                 |

@@ -55,6 +55,8 @@ def main():
                         help='the y component of the initial position [meters]')
     parser.add_argument('-z', type=float, default=0,
                         help='the z component of the initial position [meters]')
+    parser.add_argument('-Yaw', type=float,default=0,
+                        help="The yaw of the robot in radians")
     parser.add_argument('-t', '--type_of_robot', type=str, default='waffle_pi',
                         help='the type of robot')
     parser.add_argument('-ds', '--driving_swarm', type=str, default='False',
@@ -99,11 +101,11 @@ def main():
         xml = xacro.process_file(sdf_file_path)
         robot_description = xml.toprettyxml(indent='  ')
     elif args.type_of_robot == "limo":
-    	 sdf_file_path = os.path.join(
-    	    get_package_share_directory('limo_description'), 'urdf', 
-    	   'limo_four_diff.xacro')  
-    	 xml = xacro.process_file(sdf_file_path)
-    	 robot_description = xml.toprettyxml(indent='  ')
+        sdf_file_path = os.path.join(
+           get_package_share_directory('limo_description'), 'urdf', 
+           'limo_four_diff.xacro')  
+        xml = xacro.process_file(sdf_file_path)
+        robot_description = xml.toprettyxml(indent='  ')
 
     if args.type_of_robot != "thymio":
         # remapping tf topic 
@@ -120,8 +122,8 @@ def main():
 
     print("sdf_file_path: ", sdf_file_path)
 
-    node.get_logger().debug('spawning `{}` on namespace `{}` at {}, {}, {}'.format(
-        args.robot_name, args.robot_namespace, args.x, args.y, args.z))
+    node.get_logger().debug('spawning `{}` on namespace `{}` at {}, {}, {}, {}'.format(
+        args.robot_name, args.robot_namespace, args.x, args.y, args.z, args.Yaw))
    
     request = SpawnEntity.Request()
     request.name = args.robot_name
@@ -130,6 +132,13 @@ def main():
     request.initial_pose.position.x = float(args.x)
     request.initial_pose.position.y = float(args.y)
     request.initial_pose.position.z = float(args.z)
+    yaw_quaternion = rpy_to_quaternion(0, 0, float(args.Yaw))
+
+# Set the orientation
+    request.initial_pose.orientation.x = yaw_quaternion[0]
+    request.initial_pose.orientation.y = yaw_quaternion[1]
+    request.initial_pose.orientation.z = yaw_quaternion[2]
+    request.initial_pose.orientation.w = yaw_quaternion[3]
 
     node.get_logger().debug("Sending service request to `/spawn_entity`")
     future = client.call_async(request)
@@ -177,6 +186,26 @@ def main():
     node.get_logger().debug("Done! Shutting down add_bot_node.")
     node.destroy_node()
     rclpy.shutdown()
+
+
+def rpy_to_quaternion(roll, pitch, yaw):
+    import math
+    from geometry_msgs.msg import Quaternion
+
+    quaternion = Quaternion()
+    t0 = math.cos(yaw * 0.5)
+    t1 = math.sin(yaw * 0.5)
+    t2 = math.cos(roll * 0.5)
+    t3 = math.sin(roll * 0.5)
+    t4 = math.cos(pitch * 0.5)
+    t5 = math.sin(pitch * 0.5)
+
+    quaternion.x = t0 * t3 * t4 - t1 * t2 * t5
+    quaternion.y = t0 * t2 * t5 + t1 * t3 * t4
+    quaternion.z = t1 * t2 * t4 - t0 * t3 * t5
+    quaternion.w = t0 * t2 * t4 + t1 * t3 * t5
+
+    return [quaternion.x, quaternion.y, quaternion.z, quaternion.w]
 
 
 if __name__ == "__main__":
