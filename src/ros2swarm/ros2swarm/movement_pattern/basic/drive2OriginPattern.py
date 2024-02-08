@@ -11,10 +11,16 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, TransformStamped, Quaternion, Vector3
+from tf2_msgs.msg import TFMessage
+from nav_msgs.msg import Odometry
+
 from ros2swarm.movement_pattern.movement_pattern import MovementPattern
+from rclpy.qos import qos_profile_sensor_data
 from ros2swarm.utils import setup_node
+from math import atan2, pi, cos, sin
 from icecream import ic
+
 
 
 class Drive2OriginPattern(MovementPattern):
@@ -32,28 +38,92 @@ class Drive2OriginPattern(MovementPattern):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('drive_timer_period', 0.5),
-                ('targetX', 0.0),
-                ('targetY', 0.0),
+                ('drive_timer_period', 0.1),
+                ('targetX', 1.0),
+                ('targetY', 1.0),
             ])
-
+        
+        # robot_X/odom topic subscriber
+        # Used to gain positional and rotational data relative to 0,0,0 
+        self.tf_data_subscription = self.create_subscription(
+             Odometry,
+             self.get_namespace() + '/odom',
+             self.swarm_command_controlled(self.odom_callback), 
+            10
+        )
+           
+        self.position = {"x":0, "y":0, "z":0, "yaw":0.0, "pitch":0.0}
         self.namespace = self.get_namespace()
         ic(self.namespace)
+        ic(self.position)
         timer_period = float(
             self.get_parameter("drive_timer_period").get_parameter_value().double_value)
         self.timer = self.create_timer(timer_period, self.swarm_command_controlled_timer(self.timer_callback))
         self.i = 0
         self.param_x = float(self.get_parameter("targetX").get_parameter_value().double_value)
-        self.param_z = float(
+        self.param_y = float(
             self.get_parameter("targetY").get_parameter_value().double_value)
 
         self.get_logger().warn('Logger is: ' + self.get_logger().get_effective_level().name)
         self.get_logger().info('Logger is: Not  but it did update Tho ')
-        self.get_logger().info('This Shit working good')
         self.get_logger().debug('Logger is: debug')
+        # self.angularVector3= Vector3(x=0.0,y=0.0,z=0.0) # default angular velocities so the timer doesnt get mad
+
+        self.startingPosition = []
+        ic(self.startingPosition)
+    
+    
+    def odom_callback(self, odom_msg):
+        """ When called, will use odometry data to set drive velocities towards the origin """
+        
+        
+        """
+        JUST UPDATE ANGULAR VELOCITY. SET X VELOCITY TO A CONSTANT SPEED ( WILL HAVE ROBOT/DRONE DRIVE DIRECTION IT IS FACING ) 
+        FIND X VELOCITY THAT MAKES SENSE, ROS2SWARM CREATORS HINT VELOCITY IS IN M/S        
+        """
+        msg = Twist()
+        
+        self.orientation_update(odom_msg)
+        # ic(yaw_correction)
+        yaw_correction =   abs(((atan2(self.position['y'], self.position['x'])+pi)-(2*pi))) - abs(self.position["yaw"])
+
+        # msg.angular.z = yaw_correction
+        # msg.linear.x = 1.0
+        
+        # self.get_logger().info('Publishing {}:"{}"'.format(self.i, msg))
+        # self.command_publisher.publish(msg)
+
+    def orientation_update(self, odom_msg)-> None:
+        if odom_msg is None:
+            return 0
+        # ic(odom_msg)
+        
+        # Pulling Base Link Translation and Rotation data
+        positionalData = odom_msg.pose.pose.position
+        self.position['x'] = positionalData.x
+        self.position['y'] = positionalData.y
+        self.position['z'] = positionalData.z
+        
+        self.position["yaw"] = quaternion_to_yaw(odom_msg.pose.pose.orientation)
+        # ic(self.position["yaw"])
+        
+        if not self.startingPosition:
+            self.startingPosition = [
+                self.position['x'],
+                self.position['y'],
+                self.position['z']
+            ] 
+
+
+        # # using a little bit of trig, I am able to calculate the angle necessary to make the drone face the origin, 
+        # # that way, when giving the drone a velocity, it will travel directly over the origin line.
+        # yaw = (atan2(self.position['y'], self.position['x'])+pi)
+        
+        # ic(yaw)
+        # return abs(yaw - 2*pi) - abs(self.position["yaw"])
 
     def timer_callback(self):
-        """Publish the configured twist message when called."""
+        """Publish Current Location Data when called."""
         
         msg = Twist()
         # command to publish the message in the terminal by hand
@@ -61,15 +131,65 @@ class Drive2OriginPattern(MovementPattern):
         # linear: {x: 0.26, y: 0.0, z: 0.0},
         # angular: {x: 0.0, y: 0.0, z: 0.0}
         # }"
-       
-        msg.linear.x = self.param_x
-        msg.angular.z = self.param_z
+        
+        ic("---------------------------------------------------------------")
+        yaw_correction =   (atan2(self.position['y'], self.position['x'])+ pi - self.position["yaw"]) % (2 * pi)
+        if yaw_correction < -pi:
+            yaw_correction += 2 * pi
+        elif yaw_correction >= pi:
+            yaw_correction -= 2 * pi
+
+        msg.angular.z = yaw_correction
+        msg.linear.x = 0.5
+        
+        self.get_logger().info('Publishing {}:"{}"'.format(self.i, msg))
         self.command_publisher.publish(msg)
-        self.get_logger().debug('Publishing {}:"{}"'.format(self.i, msg))
+        # msg.angular = self.angularVector3
+        # self.command_publisher.publish(msg)
+        ic(msg)
+        ic(self.startingPosition)
+# self.get_logger().debug('Publishing {}:"{}"'.format(self.i, msg))
         self.get_logger().info(f'We out here | Robot {self.namespace}')
         self.i += 1
 
         self.namespace
+
+
+def calculate_Vector(yaw:float, pitch: float = 0.0, roll: float = 0.0) -> Vector3:
+    angularVector3 = Vector3()
+    t0 = cos(yaw * 0.5)
+    t1 = sin(yaw * 0.5)
+    t2 = cos(roll * 0.5) # Roll is 0 for the time being, do not forsee a situation where this is nessessary yet - 1/30/24
+    t3 = sin(roll * 0.5) # Roll is 0 for the time being, do not forsee a situation where this is nessessary yet - 1/30/24
+    t4 = cos(pitch * 0.5)
+    t5 = sin(pitch * 0.5)
+    
+    angularVector3.x = t0 * t3 * t4 - t1 * t2 * t5
+    angularVector3.y = t0 * t2 * t5 + t1 * t3 * t4
+    angularVector3.z = t1 * t2 * t4 - t0 * t3 * t5
+    
+    return angularVector3
+
+def quaternion_to_yaw(quaternion):
+    """Calculate yaw angle from a quaternion.
+
+    Args:
+    - q (list): A list representing the quaternion in the order [w, x, y, z].
+
+    Returns:
+    - float: Yaw angle in radians.
+    
+    From ChatGPT
+    """
+    # Extract quaternion components
+    w = quaternion.w 
+    x = quaternion.x
+    y = quaternion.y
+    z = quaternion.z 
+    # Yaw (z-axis rotation)
+    return atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y**2 + z**2))
+
+
 
 
 

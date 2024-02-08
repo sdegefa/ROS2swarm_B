@@ -25,6 +25,7 @@ from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from icecream import ic
 
 
 def generate_launch_description():
@@ -63,6 +64,8 @@ def generate_launch_description():
             y_start = float(arg.split(":=")[1])
         elif arg.startswith("y_dist:="):  # increment of positions on y-axis 
             y_dist = float(arg.split(":=")[1])
+        elif arg.startswith("yaw:="):  # use driving swarm framework 
+            yaw = float(arg.split(":=")[1])
         elif arg.startswith("driving_swarm:="):  # use driving swarm framework 
             driving_swarm = arg.split(":=")[1]
             
@@ -77,7 +80,7 @@ def generate_launch_description():
                            'add_robot.launch.py']:
                 print("Argument not known: '", arg, "'")
 
-    
+    # ic(yaw)
     print("number of robots |", number_robots)
     print("---------------------------------------")
     print("pattern          |", pattern)
@@ -90,8 +93,11 @@ def generate_launch_description():
     print("---------------------------------------")
     print("namespace_index  |", start_index)
     print("---------------------------------------")
-    print("version	     |", ros_version)
+    print("version	          |", ros_version)
     print("---------------------------------------")
+    print("yaw	         |", yaw)
+    print("---------------------------------------")
+    
     
     # allows to use the same configuration files for each robot type but different mesh models
     robot_type = robot
@@ -145,10 +151,8 @@ def generate_launch_description():
 
 
     for i in range(number_robots):
-        
+        num = i + start_index
         if driving_swarm == 'True': 
-            num = i + start_index
-                
             rviz_config_file = LaunchConfiguration('rviz_config_file', default=os.path.join(get_package_share_directory('driving_swarm_bringup'), 'rviz', 'custom.rviz'))
                 
             rviz = IncludeLaunchDescription(
@@ -179,6 +183,7 @@ def generate_launch_description():
 
         # add gazebo node
         gazebo_node = launch_ros.actions.Node(
+
             package='launch_gazebo',
             executable='add_bot_node',
             namespace=['robot_namespace_', str(num)],
@@ -190,6 +195,7 @@ def generate_launch_description():
                 '-x', str(x_start + i * x_dist),
                 '-y', str(y_start + i * y_dist),
                 '-z', '0.1',
+                '-Yaw', f'{yaw}',
                 '--type_of_robot', robot,
                 '-ds', driving_swarm, 
             ]
@@ -200,11 +206,13 @@ def generate_launch_description():
     # find out exact path of the pattern launch file
     for i in (range(number_robots)):
         num = i + start_index
+        
         pattern_launch_file_name = pattern + '.launch.py'
         for root, dirs, files in os.walk(launch_pattern_dir):
             for name in files:
                 if name == pattern_launch_file_name:
                     pattern_path = os.path.abspath(os.path.join(root, name))
+                    ic(pattern_path)
 
         # add patterns
         launch_patterns = IncludeLaunchDescription(

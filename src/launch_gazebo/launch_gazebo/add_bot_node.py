@@ -122,7 +122,7 @@ def main():
 
     print("sdf_file_path: ", sdf_file_path)
 
-    node.get_logger().debug('spawning `{}` on namespace `{}` at {}, {}, {}, {}'.format(
+    node.get_logger().debug('spawning `{}` on namespace `{}` at {}, {}, {}'.format(
         args.robot_name, args.robot_namespace, args.x, args.y, args.z, args.Yaw))
    
     request = SpawnEntity.Request()
@@ -139,6 +139,10 @@ def main():
     request.initial_pose.orientation.y = yaw_quaternion[1]
     request.initial_pose.orientation.z = yaw_quaternion[2]
     request.initial_pose.orientation.w = yaw_quaternion[3]
+
+# ...
+
+
 
     node.get_logger().debug("Sending service request to `/spawn_entity`")
     future = client.call_async(request)
@@ -188,6 +192,9 @@ def main():
     rclpy.shutdown()
 
 
+
+
+
 def rpy_to_quaternion(roll, pitch, yaw):
     import math
     from geometry_msgs.msg import Quaternion
@@ -206,7 +213,6 @@ def rpy_to_quaternion(roll, pitch, yaw):
     quaternion.w = t0 * t2 * t4 + t1 * t3 * t5
 
     return [quaternion.x, quaternion.y, quaternion.z, quaternion.w]
-
 
 if __name__ == "__main__":
     main()
