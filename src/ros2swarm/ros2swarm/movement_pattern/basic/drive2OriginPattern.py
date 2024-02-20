@@ -20,8 +20,8 @@ from rclpy.qos import qos_profile_sensor_data
 from ros2swarm.utils import setup_node
 from math import atan2, pi, cos, sin
 from icecream import ic
-
-
+# import sys
+# ic(sys.path)
 
 class Drive2OriginPattern(MovementPattern):
     """
@@ -54,8 +54,8 @@ class Drive2OriginPattern(MovementPattern):
            
         self.position = {"x":0, "y":0, "z":0, "yaw":0.0, "pitch":0.0}
         self.namespace = self.get_namespace()
-        ic(self.namespace)
-        ic(self.position)
+        # ic(self.namespace)
+        # ic(self.position)
         timer_period = float(
             self.get_parameter("drive_timer_period").get_parameter_value().double_value)
         self.timer = self.create_timer(timer_period, self.swarm_command_controlled_timer(self.timer_callback))
@@ -76,22 +76,24 @@ class Drive2OriginPattern(MovementPattern):
     def odom_callback(self, odom_msg):
         """ When called, will use odometry data to set drive velocities towards the origin """
         
-        
         """
         JUST UPDATE ANGULAR VELOCITY. SET X VELOCITY TO A CONSTANT SPEED ( WILL HAVE ROBOT/DRONE DRIVE DIRECTION IT IS FACING ) 
         FIND X VELOCITY THAT MAKES SENSE, ROS2SWARM CREATORS HINT VELOCITY IS IN M/S        
         """
-        msg = Twist()
-        
         self.orientation_update(odom_msg)
+        # msg = Twist()
         # ic(yaw_correction)
-        yaw_correction =   abs(((atan2(self.position['y'], self.position['x'])+pi)-(2*pi))) - abs(self.position["yaw"])
-
+        # yaw_correction =   (atan2(self.position['y'], self.position['x'])+ pi - self.position["yaw"]) % (2 * pi)           
+        # if yaw_correction < -pi:
+        #    yaw_correction += 2 * pi
+        # elif yaw_correction >= pi:
+        #    yaw_correction -= 2 * pi
         # msg.angular.z = yaw_correction
-        # msg.linear.x = 1.0
-        
-        # self.get_logger().info('Publishing {}:"{}"'.format(self.i, msg))
-        # self.command_publisher.publish(msg)
+         
+            #  msg.linear.x = 1.0
+
+            #  self.get_logger().info('Publishing {}:"{}"'.format(self.i, msg))
+            #  self.command_publisher.publish(msg)
 
     def orientation_update(self, odom_msg)-> None:
         if odom_msg is None:
@@ -123,7 +125,10 @@ class Drive2OriginPattern(MovementPattern):
         # return abs(yaw - 2*pi) - abs(self.position["yaw"])
 
     def timer_callback(self):
-        """Publish Current Location Data when called."""
+        """Uses currntly updates location to ."""
+        if abs(self.position['x']) < 0.5 and abs(self.position['y']) < 0.5:
+            ic("Robot Has Leaked, Commence Deletion")
+            return
         
         msg = Twist()
         # command to publish the message in the terminal by hand
@@ -146,10 +151,9 @@ class Drive2OriginPattern(MovementPattern):
         self.command_publisher.publish(msg)
         # msg.angular = self.angularVector3
         # self.command_publisher.publish(msg)
-        ic(msg)
-        ic(self.startingPosition)
+        # ic(msg)
 # self.get_logger().debug('Publishing {}:"{}"'.format(self.i, msg))
-        self.get_logger().info(f'We out here | Robot {self.namespace}')
+        # self.get_logger().info(f'We out here | Robot {self.namespace}')
         self.i += 1
 
         self.namespace

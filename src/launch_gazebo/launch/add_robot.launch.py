@@ -134,7 +134,7 @@ def generate_launch_description():
     elif robot_type.startswith('thymio'):
         urdf_file_name = 'thymio.urdf'
         urdf_file = os.path.join(get_package_share_directory('thymio_description'), 'urdf', urdf_file_name)
-    elif robot_type.startwith('jackal'):
+    elif robot_type.startswith('jackal'):
         
         config_jackal_velocity_controller = PathJoinSubstitution(
             [FindPackageShare('jackal_control'), 'config', 'control.yaml']

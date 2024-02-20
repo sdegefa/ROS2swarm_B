@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    drive_timer_period: 0.1
+    drive_linear: 1.0
+    drive_angular: 0.0

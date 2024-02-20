@@ -12,21 +12,22 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-source ./install/setup.bash &&
+source ./install/setup.zsh &&
  ROS_DOMAIN_ID=42 ros2 launch launch_gazebo add_robot.launch.py \
- start_index:=4 \
- gazebo_world:=arena_large.world \
- pattern:=random_walk_pattern \
- number_robots:=2 \
+ start_index:=1 \
+ gazebo_world:=empty.world \
+ pattern:=drive2OriginPattern \
+ number_robots:=1 \
  log_level:=info \
- robot:=burger \
+ robot:=waffle_pi \
  sensor_type:=lidar \
  version:=2 \
- x_start:=1.0 \
+ x_start:=20.0 \
  x_dist:=0.5 \
- y_start:=0.0 \
+ y_start:=20.0 \
  y_dist:=1.0 \
- driving_swarm:=True 
+ yaw:=3.9269908169872414\
+ driving_swarm:=False
  
 # -p pattern_name
 ## movement pattern:
