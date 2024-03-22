@@ -95,8 +95,7 @@ def generate_launch_description():
     print("---------------------------------------")
     print("version	          |", ros_version)
     print("---------------------------------------")
-    print("yaw	         |", yaw)
-    print("---------------------------------------")
+   
     
     
     # allows to use the same configuration files for each robot type but different mesh models
@@ -212,15 +211,15 @@ def generate_launch_description():
             for name in files:
                 if name == pattern_launch_file_name:
                     pattern_path = os.path.abspath(os.path.join(root, name))
-                    ic(pattern_path)
-
+                    # ic(pattern_path)
+        ic(launch_bringup_dir)
         # add patterns
         launch_patterns = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 [launch_bringup_dir, '/' + 'bringup_patterns.launch.py']),
             	  launch_arguments={'robot': robot,
                               'robot_type': robot_type,
-			       'sensor_type': sensor_type,             
+			                  'sensor_type': sensor_type,             
                               'robot_namespace': ['robot_', str(num)],
                               'pattern': pattern_path,
                               'config_dir': config_dir,

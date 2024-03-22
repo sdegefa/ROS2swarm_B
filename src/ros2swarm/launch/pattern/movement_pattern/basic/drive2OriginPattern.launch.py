@@ -23,7 +23,7 @@ def generate_launch_description():
     robot_namespace = LaunchConfiguration('robot_namespace', default='robot_namespace_default')
     config_dir = LaunchConfiguration('config_dir', default='config_dir_default')
     log_level = LaunchConfiguration("log_level", default='debug')
-    ic(robot_namespace)
+    
     ld = LaunchDescription()
     ros2_pattern_node = launch_ros.actions.Node(
         package='ros2swarm',
