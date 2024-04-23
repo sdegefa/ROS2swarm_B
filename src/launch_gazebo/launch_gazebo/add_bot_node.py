@@ -34,6 +34,8 @@ from lifecycle_msgs.srv import GetState
 from std_msgs.msg import String
 from rclpy.qos import QoSProfile, QoSDurabilityPolicy
 import xml.etree.ElementTree as ET
+from icecream import ic
+
 
 def callback(msg):
      print('I heard: "%s"' % msg.data)
@@ -42,7 +44,7 @@ def main():
     """ Main for spawning robot node """
     # Get input arguments from user
     # argv = sys.argv[1:]
-
+    ic()
     # Get input arguments from user
     parser = argparse.ArgumentParser(description='Spawn Robot into Gazebo')
     parser.add_argument('-n', '--robot_name', type=str, default='robot',
@@ -67,7 +69,6 @@ def main():
     # Start node
     rclpy.init()
     node = rclpy.create_node("entity_spawner_"+args.robot_name)
-
     node.get_logger().debug(
         'Creating Service client to connect to `/spawn_entity`')
     client = node.create_client(SpawnEntity, "/spawn_entity")
@@ -106,6 +107,12 @@ def main():
            'limo_four_diff.xacro')  
         xml = xacro.process_file(sdf_file_path)
         robot_description = xml.toprettyxml(indent='  ')
+    
+    elif args.type_of_robot == "iris":
+        sdf_file_path = os.path.join(
+            get_package_share_directory("iris"), "urdf",
+            "iris.sdf")
+        ic(sdf_file_path)
 
     if args.type_of_robot != "thymio":
         # remapping tf topic 

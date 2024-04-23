@@ -30,7 +30,7 @@ from icecream import ic
 
 def generate_launch_description():
     """Add turtlebot(s) to an already running gazebo simulation."""
-
+    ic()
     launch_file_dir = os.path.join(get_package_share_directory('launch_gazebo'))
     launch_pattern_dir = os.path.join(get_package_share_directory('ros2swarm'), 'launch', 'pattern')
     launch_bringup_dir = os.path.join(get_package_share_directory('ros2swarm'))
@@ -118,6 +118,9 @@ def generate_launch_description():
         robot_type = "limo"
         baseframe = 'base_link'  
         #gazebo_flag = False
+    elif robot_type.startswith('iris'):
+        robot_type = "iris"
+        baseframe = 'base_link'  
 
     print("robot type       |", robot_type)
     print("---------------------------------------")
@@ -134,17 +137,13 @@ def generate_launch_description():
         urdf_file_name = 'thymio.urdf'
         urdf_file = os.path.join(get_package_share_directory('thymio_description'), 'urdf', urdf_file_name)
     elif robot_type.startswith('jackal'):
-        
-        config_jackal_velocity_controller = PathJoinSubstitution(
-            [FindPackageShare('jackal_control'), 'config', 'control.yaml']
-            )
-        
+        config_jackal_velocity_controller = PathJoinSubstitution([FindPackageShare('jackal_control'), 'config', 'control.yaml'])
         urdf_file_name = 'jackal.urdf.xacro'
         urdf_file = os.path.join(get_package_share_directory('jackal_description'), 'urdf', urdf_file_name)
-    elif robot_type.startwith('limo'):
+    elif robot_type.startswith('limo'):
         urdf_file_name = 'limo_four_diff.xacro'
         urdf_file = os.path.join(get_package_share_directory('limo_description'), 'urdf', urdf_file_name)
-
+    ic(urdf_file)
     launch_pattern_dir = os.path.join(get_package_share_directory('ros2swarm'), 'launch', 'pattern')
     launch_bringup_dir = os.path.join(get_package_share_directory('ros2swarm'))
 

@@ -20,11 +20,12 @@ from launch import LaunchDescription
 from launch.actions import ExecuteProcess
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
+from icecream import ic
 
 
 def generate_launch_description():
     """Starts a gazebo simulation in the mode, where elements could be added via command line"""
-
+    ic()
     world_name = LaunchConfiguration('world_name', default='arena_large.world')
     world_directory = os.path.join(get_package_share_directory('launch_gazebo'), 'worlds')
     #use_sim_time = LaunchConfiguration('use_sim_time', default='True')

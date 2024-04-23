@@ -28,10 +28,13 @@ from launch.substitutions import LaunchConfiguration, Command
 from launch_ros.actions import Node
 from gazebo_msgs.srv import SpawnEntity
 import xml.etree.ElementTree as ET
+from icecream import ic
+
+
 
 def generate_launch_description():
     """Creates the environment with gazebo, add robots and starts their behaviour"""
-
+    ic()
     launch_file_dir = os.path.join(get_package_share_directory('launch_gazebo'))
     launch_pattern_dir = os.path.join(get_package_share_directory('ros2swarm'), 'launch', 'pattern')
     launch_bringup_dir = os.path.join(get_package_share_directory('ros2swarm'))

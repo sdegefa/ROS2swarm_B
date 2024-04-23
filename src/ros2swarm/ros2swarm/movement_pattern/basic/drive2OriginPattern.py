@@ -22,7 +22,6 @@ from math import atan2, pi, cos, sin
 from icecream import ic
 # import sys
 # ic(sys.path)
-
 class Drive2OriginPattern(MovementPattern):
     """
     A simple pattern for driving a constant direction vector.
@@ -38,9 +37,10 @@ class Drive2OriginPattern(MovementPattern):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('drive_timer_period', 0.1),
-                ('targetX', 1.0),
-                ('targetY', 1.0),
+                ('drive_timer_period', 0.05),
+                ('speed', 0.1),
+                ('leaker_range', 1.0),
+                
             ])
         
         # robot_X/odom topic subscriber
@@ -60,12 +60,13 @@ class Drive2OriginPattern(MovementPattern):
             self.get_parameter("drive_timer_period").get_parameter_value().double_value)
         self.timer = self.create_timer(timer_period, self.swarm_command_controlled_timer(self.timer_callback))
         self.i = 0
-        self.param_x = float(self.get_parameter("targetX").get_parameter_value().double_value)
-        self.param_y = float(
-            self.get_parameter("targetY").get_parameter_value().double_value)
+        self.param_Speed = float(self.get_parameter("speed").get_parameter_value().double_value)
+        self.param_LRange = float(
+            self.get_parameter("leaker_range").get_parameter_value().double_value)
 
         self.get_logger().warn('Logger is: ' + self.get_logger().get_effective_level().name)
-        self.get_logger().info('Logger is: Not  but it did update Tho ')
+        self.get_logger().info(f'Speed is: {self.param_Speed}')
+        self.get_logger().info(f'Leaker Range is: {self.param_LRange}')
         self.get_logger().debug('Logger is: debug')
         # self.angularVector3= Vector3(x=0.0,y=0.0,z=0.0) # default angular velocities so the timer doesnt get mad
 
@@ -116,17 +117,14 @@ class Drive2OriginPattern(MovementPattern):
                 self.position['z']
             ] 
 
-
-        # # using a little bit of trig, I am able to calculate the angle necessary to make the drone face the origin, 
-        # # that way, when giving the drone a velocity, it will travel directly over the origin line.
         # yaw = (atan2(self.position['y'], self.position['x'])+pi)
         
         # ic(yaw)
         # return abs(yaw - 2*pi) - abs(self.position["yaw"])
 
     def timer_callback(self):
-        """Uses currntly updates location to ."""
-        if abs(self.position['x']) < 0.5 and abs(self.position['y']) < 0.5:
+        """Uses currently updates location to ."""
+        if abs(self.position['x']) < self.param_LRange and abs(self.position['y']) < self.param_LRange:
             ic("Robot Has Leaked, Commence Deletion")
             return
         
@@ -136,26 +134,25 @@ class Drive2OriginPattern(MovementPattern):
         # linear: {x: 0.26, y: 0.0, z: 0.0},
         # angular: {x: 0.0, y: 0.0, z: 0.0}
         # }"
+
+        # # using a little bit of trig, I am able to calculate the angle necessary to make the drone face the origin, 
+        # # that way, when giving the drone a velocity, it will travel directly over the origin line.
         
         ic("---------------------------------------------------------------")
         yaw_correction =   (atan2(self.position['y'], self.position['x'])+ pi - self.position["yaw"]) % (2 * pi)
+        
         if yaw_correction < -pi:
             yaw_correction += 2 * pi
         elif yaw_correction >= pi:
             yaw_correction -= 2 * pi
 
         msg.angular.z = yaw_correction
-        msg.linear.x = 0.5
+        msg.linear.x = self.param_Speed
         
         self.get_logger().info('Publishing {}:"{}"'.format(self.i, msg))
         self.command_publisher.publish(msg)
-        # msg.angular = self.angularVector3
-        # self.command_publisher.publish(msg)
-        # ic(msg)
-# self.get_logger().debug('Publishing {}:"{}"'.format(self.i, msg))
-        # self.get_logger().info(f'We out here | Robot {self.namespace}')
-        self.i += 1
 
+        self.i += 1
         self.namespace
 
 

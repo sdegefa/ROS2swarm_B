@@ -20,6 +20,8 @@ from ros2swarm.utils import setup_node
 from communication_interfaces.msg import ModelStatesStamped
 from rclpy.qos import qos_profile_sensor_data
 from gazebo_msgs.msg import ModelStates 
+from icecream import ic
+
 
 class GroundTruthPublisher(Node):
 
@@ -52,7 +54,7 @@ class GroundTruthPublisher(Node):
         at least one range measurement has already been received from
         each sensor.
         """
-        
+        ic()
 
         msg = ModelStatesStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
@@ -68,6 +70,8 @@ def main(args=None):
     Create a node for the IR Layer, spin it and handle the
     destruction.
     """
+    ic()
+    ic(GroundTruthPublisher)
     setup_node.init_and_spin(args, GroundTruthPublisher)
 
 

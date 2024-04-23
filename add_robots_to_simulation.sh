@@ -12,6 +12,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+colcon build --symlink-install &&
 source ./install/setup.zsh &&
  ROS_DOMAIN_ID=42 ros2 launch launch_gazebo add_robot.launch.py \
  start_index:=1 \
@@ -22,9 +23,9 @@ source ./install/setup.zsh &&
  robot:=waffle_pi \
  sensor_type:=lidar \
  version:=2 \
- x_start:=20.0 \
+ x_start:=0.0 \
  x_dist:=0.5 \
- y_start:=20.0 \
+ y_start:=0.0 \
  y_dist:=1.0 \
  yaw:=3.9269908169872414\
  driving_swarm:=False
