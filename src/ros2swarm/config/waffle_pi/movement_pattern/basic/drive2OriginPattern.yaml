@@ -1,5 +1,5 @@
 /**:
   ros__parameters:
     drive_timer_period: 0.1
-    leaker_range: 10.0
-    speed: 200.0
+    leaker_range: 1.0
+    speed: 1000.0

@@ -18,7 +18,7 @@ from nav_msgs.msg import Odometry
 from ros2swarm.movement_pattern.movement_pattern import MovementPattern
 from rclpy.qos import qos_profile_sensor_data
 from ros2swarm.utils import setup_node
-from math import atan2, pi, cos, sin
+from math import atan2, pi, cos, sin, sqrt
 from icecream import ic
 # import sys
 # ic(sys.path)
@@ -124,9 +124,14 @@ class Drive2OriginPattern(MovementPattern):
 
     def timer_callback(self):
         """Uses currently updates location to ."""
-        if abs(self.position['x']) < self.param_LRange and abs(self.position['y']) < self.param_LRange:
+        
+        # ic("---------------------------------------------------------------")
+        # ic(abs(sqrt((pow(base=self.position['x'],exp=2) + pow(base=self.position['y'],exp=2)))) < self.param_LRange,
+        #    abs(sqrt((pow(base=self.position['x'],exp=2) + pow(base=self.position['y'],exp=2)))),
+        #    self.param_LRange)
+        # ic("---------------------------------------------------------------")
+        if abs(sqrt((pow(base=self.position['x'],exp=2) + pow(base=self.position['y'],exp=2)))) < self.param_LRange:
             ic("Robot Has Leaked, Commence Deletion")
-            return
         
         msg = Twist()
         # command to publish the message in the terminal by hand
@@ -139,7 +144,7 @@ class Drive2OriginPattern(MovementPattern):
         # # that way, when giving the drone a velocity, it will travel directly over the origin line.
         
         ic("---------------------------------------------------------------")
-        yaw_correction =   (atan2(self.position['y'], self.position['x'])+ pi - self.position["yaw"]) % (2 * pi)
+        yaw_correction =   (atan2(self.position['y'], self.position['x']) + pi - self.position["yaw"]) % (2 * pi)
         
         if yaw_correction < -pi:
             yaw_correction += 2 * pi
@@ -189,10 +194,6 @@ def quaternion_to_yaw(quaternion):
     z = quaternion.z 
     # Yaw (z-axis rotation)
     return atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y**2 + z**2))
-
-
-
-
 
 def main(args=None):
     """
